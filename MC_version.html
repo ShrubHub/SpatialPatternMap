@@ -91,13 +91,19 @@ body { margin: 0; padding: 0; }
             map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
         });
 
-    map.on('style.load',() => {
+    map.on('load',() => {
+
             map.addSource('ALD_photos', {
                 'type': 'geojson',
                 'data': 'https://raw.githubusercontent.com/cnorton27/ALD-Georef-Photo-map/refs/heads/main/Data/all_photos.geojson' // URL of GeoJSON data
             });
-        });
 
+            map.addSource('polygons', {
+                'type': 'geojson',
+                'data': 'https://raw.githubusercontent.com/ShrubHub/SpatialPatternMap/refs/heads/main/Data/spatial_patterning.geojson' // URL of GeoJSON data
+            });
+        });
+    
          
     // Wait until the map has finished loading.
     map.on('load', () => {
@@ -124,6 +130,20 @@ body { margin: 0; padding: 0; }
             'paint': {
                 'circle-radius': 8,
                 'circle-color': 'rgba(55,148,179,1)'
+            }
+        });
+
+        map.addLayer({
+            'id': 'polygons',
+            'type': 'fill',
+            'source': 'polygons',
+            'layout': {
+                // Make the layer visible by default.
+                'visibility': 'visible'
+           // },
+          //  'paint': {
+                //'circle-radius': 8,
+                //'circle-color': 'rgba(55,148,179,1)'
             }
         });
 
