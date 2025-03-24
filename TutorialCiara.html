@@ -51,13 +51,15 @@ body { margin: 0; padding: 0; }
     }
 
     #menu a.active {
-        background-color: #447875
+        background-color: #447875;
         color: #ffffff;
     }
 
     #menu a.active:hover {
         background: #3074a4;
     }
+
+
 </style>
 
 <nav id="menu"></nav>
@@ -96,12 +98,19 @@ map.on('style.load', () => {
     map.on('load', () => {
         // Add a custom vector tileset source. This tileset contains
 
+// my map sources here
 
         map.addSource('ALD_photos', {
               type: 'geojson',
               data: 'https://raw.githubusercontent.com/cnorton27/ALD-Georef-Photo-map/refs/heads/main/Data/all_photos.geojson' // URL of GeoJSON data
          });
 
+         map.addSource('contours', {
+            type: 'vector',
+            url: 'mapbox://mapbox.mapbox-terrain-v2'
+        });
+
+// map add layers
 
         map.addLayer({
             'id': 'ALD_photos',
@@ -115,15 +124,6 @@ map.on('style.load', () => {
                 'circle-radius': 8,
                 'circle-color': 'rgba(55,148,179,1)'
             },
-        });
-
-        // Add the Mapbox Terrain v2 vector tileset. Read more about
-        // the structure of data in this tileset in the documentation:
-        // https://docs.mapbox.com/vector-tiles/reference/mapbox-terrain-v2/
-
-        map.addSource('contours', {
-            type: 'vector',
-            url: 'mapbox://mapbox.mapbox-terrain-v2'
         });
 
         map.addLayer({
@@ -143,6 +143,19 @@ map.on('style.load', () => {
             }
         });
     });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // After the last frame rendered before the map enters an "idle" state.
     map.on('idle', () => {
