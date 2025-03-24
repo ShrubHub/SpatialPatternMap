@@ -1,21 +1,71 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Combined Data P1</title>
+<title>Arctic Spatial Patterning</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script> <!-- Then Mapbox GL -->
 <style>
 body { margin: 0; padding: 0; }
-#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100%; }
+
+#menu {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 2;
+    max-width: 250px;
+    width: auto;
+}
+
+.legend {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+.legend div {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.legend div span {
+    margin-left: 10px;
+}
 </style>
 </head>
 <body>
-    
-    <nav id="menu"></nav>
-    <div id="map"></div>
 
- <script>
+<nav id="menu">
+    <!-- The legend is now inside the #menu div -->
+    <div class="legend">
+        <h3>Legend</h3>
+        <div>
+            <div style="background-color: #3B727C; width: 20px; height: 20px;"></div>
+            <span>Tundra stripes</span>
+        </div>
+        <div>
+            <div style="background-color: #82A775; width: 20px; height: 20px;"></div>
+            <span>Polygonal ground</span>
+        </div>
+        <div>
+            <div style="background-color: #B05F66; width: 20px; height: 20px;"></div>
+            <span>Frost boils</span>
+        </div>
+        <div>
+            <div style="background-color: #64513B; width: 20px; height: 20px;"></div>
+            <span>Sorted circles</span>
+        </div>
+    </div>
+</nav>
+
+<div id="map"></div>
+
+<script>
     mapboxgl.accessToken = 'pk.eyJ1IjoiZW1sYTg1NSIsImEiOiJjbTc1N2Mzd2cwNm8xMmpwcXMyMXNjdHN3In0.rSiF5X7V3cBNnwwGIJIWVA';
     const map = new mapboxgl.Map({
         container: 'map',
@@ -23,9 +73,73 @@ body { margin: 0; padding: 0; }
         zoom: 11,
         center: [-140.553323, 69.562553]
     });
-    
+
+    map.on('click', (event) => {
+    const features = map.queryRenderedFeatures(event.point, {
+        layers: ['spatial_patterning']
+    });
+
+    if (!features.length) return; // No features clicked, exit early.
+
+    const feature = features[0]; // Get the first feature clicked
+
+    // Check if turf can be used
+    const geometry = feature.geometry;
+    let centroid;
+
+    if (geometry.type === 'Polygon') {
+        centroid = turf.centroid(geometry);
+    } else if (geometry.type === 'MultiPolygon') {
+        centroid = turf.centroid({
+            type: 'Feature',
+            geometry: {
+                type: 'Polygon',
+                coordinates: geometry.coordinates[0] 
+            }
+        });
+    }
+
+    if (centroid) {
+        const disturbanceMap = {
+            'stripe': 'Tundra stripes',
+            'polygon': 'Polygonal ground',
+            'polygons': 'Polygonal ground',
+            'frostboil': 'Frost boils',
+            'circles': 'Sorted circles'
+        };
+
+        let description = '';
+        switch(feature.properties.disturbanc){
+            case 'stripe':
+                description = 'Tundra stripes are the result of solifluction - the slow, downslope movement of water-saturated soil - and is common on slopes';
+                break;
+            case 'polygon':
+            case 'polygons':
+                description = 'Polygonal ground is formed by repeated freeze-thaw cycles creating ice wedges';
+                break;
+            case 'frostboil':
+                description = 'Frost boils are the result of rocks being pushed to the surface by freeze-thaw cycles';
+                break;
+            case 'circles':
+                description = 'Sorted circles are similar to frost boils, but are formed by larger rocks, and cover a greater geographic extent';
+                break;
+            default:
+                description = 'Unknown';
+                break;
+        }
+        const legendTitle = disturbanceMap[feature.properties.disturbanc];
+
+        // Create the popup with the legend title
+        const popup = new mapboxgl.Popup({ offset: [0, -15] })
+            .setLngLat(centroid.geometry.coordinates) 
+            .setHTML(`
+                <h3>${legendTitle}</h3> <!-- Use legendTitle here instead of disturbance -->
+                <p>${description}</p>`)
+            .addTo(map);
+    }
+});
     map.addControl(new mapboxgl.NavigationControl());
-    map.addControl(new mapboxgl.ScaleControl()); 
+    map.addControl(new mapboxgl.ScaleControl());
 
     map.on('load', () => {
         // Add the GeoJSON source for spatial patterning
@@ -33,7 +147,7 @@ body { margin: 0; padding: 0; }
             type: 'geojson',
             data: 'https://raw.githubusercontent.com/ShrubHub/SpatialPatternMap/refs/heads/main/Data/spatial_patterning.geojson'
         });
-        
+
         // Add the DEM source for terrain only once
         if (!map.getSource('mapbox-dem')) {
             map.addSource('mapbox-dem', {
@@ -61,7 +175,7 @@ body { margin: 0; padding: 0; }
                     'match',
                     ['get', 'disturbanc'], // Get the 'disturbance' value
                     'stripe', '#3B727C',   // Color for 'stripe'
-                    'polygon', '#82A775', 
+                    'polygon', '#82A775',
                     'polygons', '#82A775', // Color for 'polygon'
                     'frostboil', '#B05F66', // Color for 'frostboil'
                     'circles', '#64513B',   // Color for 'circles'
@@ -72,5 +186,6 @@ body { margin: 0; padding: 0; }
         });
     });
 </script>
+
 </body>
 </html>
