@@ -1,0 +1,76 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>Combined Data P1</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+</style>
+</head>
+<body>
+    
+    <nav id="menu"></nav>
+    <div id="map"></div>
+
+ <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZW1sYTg1NSIsImEiOiJjbTc1N2Mzd2cwNm8xMmpwcXMyMXNjdHN3In0.rSiF5X7V3cBNnwwGIJIWVA';
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/norton27/cls58xheb00ez01pvbcqy1mhh',
+        zoom: 11,
+        center: [-140.553323, 69.562553]
+    });
+    
+    map.addControl(new mapboxgl.NavigationControl());
+    map.addControl(new mapboxgl.ScaleControl()); 
+
+    map.on('load', () => {
+        // Add the GeoJSON source for spatial patterning
+        map.addSource('spatial_patterning', {
+            type: 'geojson',
+            data: 'https://raw.githubusercontent.com/ShrubHub/SpatialPatternMap/refs/heads/main/Data/spatial_patterning.geojson'
+        });
+        
+        // Add the DEM source for terrain only once
+        if (!map.getSource('mapbox-dem')) {
+            map.addSource('mapbox-dem', {
+                type: 'raster-dem',
+                url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                tileSize: 512,
+                maxzoom: 14
+            });
+
+            // Set terrain
+            map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+        }
+
+        // Add the layer for spatial patterning
+        map.addLayer({
+            'id': 'spatial_patterning',
+            'type': 'fill',  // Assuming it's a polygon layer
+            'source': 'spatial_patterning',
+            'layout': {
+                'visibility': 'visible'
+            },
+            'paint': {
+                // Use 'match' for categorical color mapping based on 'disturbance' values
+                'fill-color': [
+                    'match',
+                    ['get', 'disturbanc'], // Get the 'disturbance' value
+                    'stripe', '#3B727C',   // Color for 'stripe'
+                    'polygon', '#82A775', 
+                    'polygons', '#82A775', // Color for 'polygon'
+                    'frostboil', '#B05F66', // Color for 'frostboil'
+                    'circles', '#64513B',   // Color for 'circles'
+                    '#000000' // Default color (if disturbance doesn't match any of the above)
+                ],
+                'fill-opacity': 0.5 // Adjust opacity
+            }
+        });
+    });
+</script>
+</body>
+</html>
