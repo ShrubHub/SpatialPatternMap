@@ -1,9 +1,8 @@
-<!DOCTYPE html>
 <html>
 
 <head>
 <meta charset="utf-8">
-<title>Spatial patterns and other fun stuff</title>
+<title>Practicing Maps</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
@@ -52,7 +51,7 @@ body { margin: 0; padding: 0; }
     }
 
     #menu a.active {
-        background-color: #3887be;
+        background-color: #447875
         color: #ffffff;
     }
 
@@ -65,60 +64,45 @@ body { margin: 0; padding: 0; }
 <div id="map"></div>
 
 <script>
-	// TO MAKE THE MAP APPEAR YOU MUST
-	// ADD YOUR ACCESS TOKEN FROM
-	// https://account.mapbox.com
-	mapboxgl.accessToken = 'pk.eyJ1IjoibXlyaWFtY2wiLCJhIjoiY204NHYwN2N4Mjh3ODJpcHRrdDZycWhlMCJ9.A1zmko6DXWScbczdt38ZgQ';
-    const map = new mapboxgl.Map({
-        container: 'map',
-        // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-        style: 'mapbox://styles/norton27/cls58xheb00ez01pvbcqy1mhh',
-        zoom: 10,
-        center: [-139.1005085686937, 69.59367886584752]
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoibm9ydG9uMjciLCJhIjoiY2xoam9hNHI5MGpuMjNscWtlcTF2dTN3dyJ9.xx0qCx-woV7mYFkrMNQmiA';
+const map = new mapboxgl.Map({
+    container: 'map',
+    // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+    style: 'mapbox://styles/mapbox/streets-v12',
+    zoom: 15,
+    center: [-71.97722138410576, -13.517379300798098]
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+
+// Add a scale control to the map
+map.addControl(new mapboxgl.ScaleControl());
+
+// adding 3d terrain
+map.on('style.load', () => {
+    map.addSource('mapbox-dem', {
+        'type': 'raster-dem',
+        'url': 'mapbox://styles/norton27/cm0ftka2600y101pw4wj00hjq',
+        'tileSize': 512,
+        'maxzoom': 14
     });
+    // add the DEM source as a terrain layer with exaggerated height
+    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+});
 
-    map.addControl(new mapboxgl.NavigationControl());
-    map.addControl(new mapboxgl.ScaleControl());
 
-    map.on('style.load', () => {
-            map.addSource('mapbox-dem', {
-                'type': 'raster-dem',
-                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                'tileSize': 512,
-                'maxzoom': 14
-            });
-            // add the DEM source as a terrain layer with exaggerated height
-            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-        });
-
-    map.on('load',() => {
-
-            map.addSource('ALD_photos', {
-                'type': 'geojson',
-                'data': 'https://raw.githubusercontent.com/cnorton27/ALD-Georef-Photo-map/refs/heads/main/Data/all_photos.geojson' // URL of GeoJSON data
-            });
-
-            map.addSource('polygons', {
-                'type': 'geojson',
-                'data': 'https://raw.githubusercontent.com/ShrubHub/SpatialPatternMap/refs/heads/main/Data/spatial_patterning.geojson' // URL of GeoJSON data
-            });
-        });
-    
-         
     // Wait until the map has finished loading.
     map.on('load', () => {
         // Add a custom vector tileset source. This tileset contains
-        // point features representing museums. Each feature contains
-        // three properties. For example:
-        // {
-        //     alt_name: "Museo Arqueologico",
-        //     name: "Museo Inka",
-        //     tourism: "museum"
-        // }
-        map.addSource('contour', {
-            type: 'vector',
-            url: 'mapbox://mapbox.2opop9hr'
-        });
+
+
+        map.addSource('ALD_photos', {
+              type: 'geojson',
+              data: 'https://raw.githubusercontent.com/cnorton27/ALD-Georef-Photo-map/refs/heads/main/Data/all_photos.geojson' // URL of GeoJSON data
+         });
+
+
         map.addLayer({
             'id': 'ALD_photos',
             'type': 'circle',
@@ -130,30 +114,18 @@ body { margin: 0; padding: 0; }
             'paint': {
                 'circle-radius': 8,
                 'circle-color': 'rgba(55,148,179,1)'
-            }
-        });
-
-        map.addLayer({
-            'id': 'polygons',
-            'type': 'fill',
-            'source': 'polygons',
-            'layout': {
-                // Make the layer visible by default.
-                'visibility': 'visible'
-           // },
-          //  'paint': {
-                //'circle-radius': 8,
-                //'circle-color': 'rgba(55,148,179,1)'
-            }
+            },
         });
 
         // Add the Mapbox Terrain v2 vector tileset. Read more about
         // the structure of data in this tileset in the documentation:
         // https://docs.mapbox.com/vector-tiles/reference/mapbox-terrain-v2/
+
         map.addSource('contours', {
             type: 'vector',
             url: 'mapbox://mapbox.mapbox-terrain-v2'
         });
+
         map.addLayer({
             'id': 'contours',
             'type': 'line',
@@ -224,9 +196,10 @@ body { margin: 0; padding: 0; }
             const layers = document.getElementById('menu');
             layers.appendChild(link);
         }
-    });   
+    });
 
 </script>
+
 
 </body>
 
