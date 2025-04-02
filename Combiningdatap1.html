@@ -118,6 +118,7 @@ body { margin: 0; padding: 0; }
                 description = 'Polygonal ground is formed by repeated freeze-thaw cycles creating ice wedges';
                 break;
             case 'frostboil':
+            case 'frost_boils':
                 description = 'Frost boils are the result of rocks being pushed to the surface by freeze-thaw cycles';
                 break;
             case 'circles':
@@ -178,10 +179,11 @@ body { margin: 0; padding: 0; }
                     'polygon', '#ffb703',
                     'polygons', '#ffb703', // Color for 'polygon'
                     'frostboil', '#B05F66', // Color for 'frostboil'
+                    'frost_boils', '#B05F66', // Color for 'frostboil'
                     'circles', '#219ebc',   // Color for 'circles'
                     '#000000' // Default color (if disturbance doesn't match any of the above)
                 ],
-                'fill-opacity': 0.5 // Adjust opacity
+                'fill-opacity': 0.1 // Adjust opacity
             }
         });
     });
